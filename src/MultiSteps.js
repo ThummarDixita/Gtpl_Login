@@ -164,9 +164,9 @@ const MultiSteps = () => {
             setErrorMessage({ ...errorMessage, selectType: "Please Select PackageType" })
         }
         else {
+            setPrice()
             nextHandler()
             pageDisplay()
-            setPrice()
         }
     }
 
