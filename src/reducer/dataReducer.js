@@ -1,5 +1,5 @@
 import { initialState } from "./state";
-import { ADD_CONTACT, ADD_NAME, NEXT_PAGE, PACKAGE_TYPE, PREV_PAGE,START_DATE ,PACKAGE_PLANE ,PRICE} from '../constant';
+import { ADD_CONTACT, ADD_NAME, NEXT_PAGE, PACKAGE_TYPE, PREV_PAGE, START_DATE, PACKAGE_PLANE, PRICE, TOTAL_PRICE } from '../constant';
 
 export const dataReducer = (state = initialState, action) => {
     let page = 0
@@ -9,6 +9,7 @@ export const dataReducer = (state = initialState, action) => {
     let startDate = ""
     let packagePlane = ""
     let price = ""
+    let totalPrice = ""
     switch (action.type) {
         case NEXT_PAGE:
             page = action.payload + 1
@@ -34,6 +35,9 @@ export const dataReducer = (state = initialState, action) => {
         case PRICE:
             price = action.payload
             return { ...state, Price: price }
+        case TOTAL_PRICE:
+            totalPrice = action.payload
+            return { ...state,  Total_Price : totalPrice }
         default:
             return state;
     }

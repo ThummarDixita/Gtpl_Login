@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { IoIosArrowRoundBack } from 'react-icons/io'
 import { useSelector, useDispatch } from 'react-redux'
-import { nextPage, backPage, addName, addContact, addPackgeType, addStartDate, addPackgePlane, addPrice } from './actions/action';
+import { nextPage, backPage, addName, addContact, addPackgeType, addStartDate, addPackgePlane, addPrice, addTotalPrice } from './actions/action';
 import DatePicker from "react-date-picker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -23,43 +23,45 @@ const MultiSteps = () => {
         selectDate: '',
         selectPlane: ''
     })
-    const [packagePlane, setpackagePlane] = useState("")
     const [packgeType, setPackgeType] = useState("")
+    const [packagePlane, setpackagePlane] = useState("")
+    const [price, setPrice] = useState(0)
+    const [totalPrice, setTotalPrice] = useState(0)
     const [plane, setPlane] = useState([{
         Select_Type: "SD",
-        Price: 250,
+        Price: 200,
         Package_Type: "",
         Select_Date: "",
         package_Plane: "",
-        Total: ""
+        Plane_Price: 0
     }, {
         Select_Type: "HD",
-        Price: 325,
+        Price: 250,
         Package_Type: "",
-        Select_Date: "",
+        Select_Date: "", 
         package_Plane: "",
-        Total: ""
+        Plane_Price: 0
     }, {
         Select_Type: "NORMAL",
-        Price: 625,
+        Price: 300,
         Package_Type: "",
         Select_Date: "",
         package_Plane: "",
-        Total: ""
+        Plane_Price: 0
     }, {
         Select_Type: "HD+",
-        Price: 1000,
+        Price: 400,
         Package_Type: "",
         Select_Date: "",
         package_Plane: "",
-        Total: ""
+        Plane_Price: 0
     }, {
         Select_Type: "UHD",
-        Price: 1750,
+        Price: 500,
         Package_Type: "",
         Select_Date: "",
         package_Plane: "",
-        Total: ""
+        Plane_Price: 0
     }]
     )
     const setData = (state) => {
@@ -67,40 +69,32 @@ const MultiSteps = () => {
         setObj(state.Name)
         setObj(state.Contact)
         setPackgeType(state.Package_Type)
-        setSelectedDate(state.Start_Date)
+        setPrice(state.Price)
+        setSelectedDate(state.Select_Date)
         setpackagePlane(state.Package_Plane)
+        setTotalPrice(state.Total_Price)
     }
-
     useEffect(() => {
         myState && setData(myState)
     }, [myState]);
 
-    useEffect(() => {
-      packgeType && dispatch(addPackgeType(packgeType))
-    }, [packgeType]);
-
-    const setPrice = () =>{
-      plane && plane.map((data)=>{
-           if(data.Select_Type === myState.Package_Type){
-               dispatch(addPrice(data.Price))
-           }
-        })
-    }
     const nextHandler = () => {
-        dispatch(nextPage(page))
-        if (obj.name) {
+        if (page === 2) {
             dispatch(addName(obj.name))
-        }
-        if (obj.mobileNo) {
             dispatch(addContact(obj.mobileNo))
         }
-        if (selctedDate) {
+        if (page === 3) {
+            dispatch(addPackgeType(packgeType))
+            dispatch(addPrice(price))
+        }
+        if (page === 4) {
             let getDate = selctedDate.getDate() + "/" + (selctedDate.getMonth() + 1) + "/" + selctedDate.getFullYear();
             dispatch(addStartDate(getDate))
+            dispatch(addPackgePlane(packagePlane))
+            dispatch(addTotalPrice(totalPrice))
         }
-        if(packagePlane){
-            dispatch (addPackgePlane(packagePlane.value))
-        }
+        dispatch(nextPage(page))
+        pageDisplay()
     }
     const previousHandler = () => {
         dispatch(backPage(page))
@@ -148,13 +142,29 @@ const MultiSteps = () => {
     }
     const changePackageTypeHandler = (e) => {
         const { value, name } = e.target
+        setPackgeType(value)
         if (name === "packgeType") {
             if (!value) {
                 setErrorMessage({ ...errorMessage, selectType: "Please Select PackageType" })
-                setPackgeType(value)
             } else {
                 setErrorMessage({ ...errorMessage, selectType: "" })
-                setPackgeType(value)
+                const index = plane.findIndex(item => item.Select_Type === value)
+                const price = plane[index].Price
+                setPrice(price)
+                setPlane(
+                    plane.map(item => {
+                        if (item.Select_Type === value) {
+                            return { ...item, Package_Type: value }
+                        } else {
+                            return { ...item, Package_Type: '' }
+                        }
+                    })
+                )
+                // plane.map((data) => {
+                //     if (data.Select_Type === value) {
+                //         setPrice(data.Price)
+                //     }
+                // })
             }
         }
     }
@@ -164,35 +174,70 @@ const MultiSteps = () => {
             setErrorMessage({ ...errorMessage, selectType: "Please Select PackageType" })
         }
         else {
-            setPrice()
             nextHandler()
-            pageDisplay()
         }
     }
 
     const datePickerHandler = (date) => {
-        console.log("date", date);
         if (!date) {
             setErrorMessage({ ...errorMessage, selectDate: "Please Select the Start Date" })
-            setSelectedDate(date)
         } else {
-            setSelectedDate(date)
             setErrorMessage({ ...errorMessage, selectDate: "" })
         }
+        setSelectedDate(date)
+        setPlane(
+            plane.map((item) => {
+                if (item.Package_Type === packgeType) {
+                    return { ...item, Select_Date: date }
+                } else {
+                    return {
+                        ...item,
+                        Package_Type: "",
+                        Select_Date: ""
+                    }
+                }
+            })
+        )
     }
 
     const changePackagePlaneHandler = (e) => {
         const { value, name } = e.target
-        setpackagePlane({ ...packagePlane, value })
         if (name === "packagePlane") {
             if (!value) {
                 setErrorMessage({ ...errorMessage, package_Plane: "Please Select Plane Of The Package" })
             } else {
-                setErrorMessage({ ...errorMessage, package_Plane: "" })
+                setErrorMessage({ ...errorMessage, selectType: "" })
             }
-        } else {
-            console.log("planeValue", value);
         }
+        setpackagePlane(value)
+        let packagePrice
+        if (value === '1-Month') {
+            packagePrice = price
+        }
+        if (value === '3-Month') {
+            packagePrice = price * 2.5
+        }
+        if (value === '6-Month') {
+            packagePrice = price * 5
+        }
+        if (value === '1-Year') {
+            packagePrice = price * 9
+        }
+        setPlane(plane.map((item) => {
+            if (item.Package_Type === packgeType) {
+                return { ...item, Package_Plane: value, Plane_Price: packagePrice }
+            }
+            else {
+                return {
+                    ...item,
+                    Package_Type: "",
+                    Select_Date: "",
+                    Package_Plane: "",
+                    Plane_Price: 0
+                }
+            }
+        }))
+        setTotalPrice(packagePrice)
     }
     const confirmHandler = (e) => {
         e.preventDefault();
@@ -275,12 +320,12 @@ const MultiSteps = () => {
                                 </div>
                                 <div className='selectDiv'>
                                     <div className='packageType'><p className='pacageTitle'>Package_Type:</p>
-                                        <select id='sd' onChange={(e) => changePackageTypeHandler(e)} name="packgeType"
+                                        <select id='sd' value={packgeType} onChange={(e) => changePackageTypeHandler(e)} name="packgeType"
                                         >
                                             <option value="">Select Type</option>
                                             <option value="SD">SD</option>
                                             <option value="HD">HD</option>
-                                            <option value="Normal">Normal</option>
+                                            <option value="NORMAL">NORMAL</option>
                                             <option value="HD+">HD+</option>
                                             <option value="UHD">UHD</option>
                                         </select>
@@ -319,9 +364,9 @@ const MultiSteps = () => {
                 return (<div className="App">
                     <div className="login-header">
                         <div className="welcome_user_page">
-                            <div className='arrowLeft'>
-                                <button className='backButton' onClick={previousHandler}><IoIosArrowRoundBack /></button>
-                            </div>
+                        <div className='arrowLeft'>
+                                    <button onClick={previousHandler} className='backButton'><IoIosArrowRoundBack /></button>
+                                </div>
                             <div className='selectPackgeDiv'>
                                 <div className='packageType'><p className='pacageTitle'>Start_Date</p>
                                     <DatePicker
@@ -337,7 +382,7 @@ const MultiSteps = () => {
                                     </div>
                                 </div>
                                 <div className='packageType'><p className='pacageTitle'>Package_Type</p>
-                                    <select id='sd' onChange={(e) => changePackagePlaneHandler(e)} name="packagePlane">
+                                    <select id='sd' value={packagePlane} onChange={(e) => changePackagePlaneHandler(e)} name="packagePlane">
                                         <option value="">Select Plane</option>
                                         <option value="1-Month">1-Month</option>
                                         <option value="3-Month">3-Month</option>
@@ -385,22 +430,22 @@ const MultiSteps = () => {
                                     </div>
                                     <div className='listRow'>
                                         <div className='list-first-Div'>
-                                            <p className='innerText'>250</p>
+                                            <p className='innerText'>{price * 1}</p>
                                         </div>
                                     </div>
                                     <div className='listRow'>
                                         <div className='list-first-Div'>
-                                            <p className='innerText'>625</p>
+                                            <p className='innerText'>{price * 2.5}</p>
                                         </div>
                                     </div>
                                     <div className='listRow'>
                                         <div className='list-first-Div'>
-                                            <p className='innerText'>1000</p>
+                                            <p className='innerText'>{price * 5}</p>
                                         </div>
                                     </div>
                                     <div className='listRow'>
                                         <div className='list-first-Div'>
-                                            <p className='innerText'>1750</p>
+                                            <p className='innerText'>{price * 9}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -501,4 +546,5 @@ const MultiSteps = () => {
         </>
     )
 }
+
 export default MultiSteps;

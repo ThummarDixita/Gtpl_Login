@@ -1,4 +1,4 @@
-import { NEXT_PAGE, PREV_PAGE, ADD_NAME ,ADD_CONTACT ,PACKAGE_TYPE ,START_DATE ,PACKAGE_PLANE , PRICE} from "../constant"
+import { NEXT_PAGE, PREV_PAGE, ADD_NAME ,ADD_CONTACT ,PACKAGE_TYPE ,START_DATE ,PACKAGE_PLANE , PRICE, TOTAL_PRICE} from "../constant"
 
 
 export const nextPage = (payload) => {
@@ -50,6 +50,13 @@ export const addPackgePlane = (payload) => {
 export const addPrice = (payload) => {
     return {
         type: PRICE,
+        payload
+    }
+}
+export const addTotalPrice = (payload) => {
+    console.log("payload" ,payload);
+    return {
+        type: TOTAL_PRICE,
         payload
     }
 }
